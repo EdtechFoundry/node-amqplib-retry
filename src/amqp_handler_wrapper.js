@@ -12,7 +12,7 @@ const getDefaultDelay = (attempts) => {
   return delay * 1000
 }
 
-module.exports = function (channel, clientQueueName, failureQueueName, clientHandler, delayFunction, initializer) {
+module.exports = function (channel, clientQueueName, failureQueueName, clientHandler, delayFunction, retryCount, initializer) {
   const errorHandler = (msg) => {
     if (!initializer.isInitialized) {
       // Delay in 1 MS to let the queues/exchange/bindings initialize
@@ -24,6 +24,10 @@ module.exports = function (channel, clientQueueName, failureQueueName, clientHan
     _.defaults(msg, { properties: {} })
     _.defaults(msg.properties, { headers: {} })
     _.defaults(msg.properties.headers, { _retryCount: 0 }) // _retryCount: 0 means this message has never been retried before.
+
+    if(!isNaN(retryCount) && retryCount >= msg.properties.headers._retryCount){
+      return channel.sendToQueue(failureQueueName, new Buffer(msg.content), msg.properties)
+    }
 
     msg.properties.headers._retryCount += 1
     const expiration = (delayFunction || getDefaultDelay)(msg.properties.headers._retryCount)
