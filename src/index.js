@@ -22,7 +22,7 @@ module.exports = (options) => {
   // initializing the objects
   const initializer = new Initializer(options.channel, options.consumerQueue, options.failureQueue)
   const consumer = new ReadyQueueConsumer(options.channel)
-  const wrapper = amqpHandlerWrapper(options.channel, options.consumerQueue, options.failureQueue, options.handler, options.delay, options.retryCount, initializer)
+  const wrapper = amqpHandlerWrapper(options.channel, options.consumerQueue, options.failureQueue, options.handler, options.delay, initializer)
 
   // initializing the queues, exchange and binding. Then starting the consumer
   initializer
