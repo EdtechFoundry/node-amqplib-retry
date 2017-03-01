@@ -25,7 +25,7 @@ module.exports = function (channel, clientQueueName, failureQueueName, clientHan
     _.defaults(msg.properties, { headers: {} })
     _.defaults(msg.properties.headers, { _retryCount: 0 }) // _retryCount: 0 means this message has never been retried before.
 
-    if(!isNaN(retryCount) && retryCount >= msg.properties.headers._retryCount){
+    if(!isNaN(retryCount) && retryCount === msg.properties.headers._retryCount){
       return channel.sendToQueue(failureQueueName, new Buffer(msg.content), msg.properties)
     }
 
