@@ -1,34 +1,40 @@
-const Initializer = require('./initializer')
-const ReadyQueueConsumer = require('./ready_queue_consumer')
-const amqpHandlerWrapper = require('./amqp_handler_wrapper')
+const Initializer = require('./initializer');
+const ReadyQueueConsumer = require('./ready_queue_consumer');
+const amqpHandlerWrapper = require('./amqp_handler_wrapper');
 
-module.exports = (options) => {
+module.exports = options => {
   // validate options
   if (!options.channel) {
-    throw new Error('\'channel\' not specified.  See documentation.')
+    throw new Error("'channel' not specified.  See documentation.");
   }
   if (!options.consumerQueue) {
-    throw new Error('\'consumerQueue\' not specified.  See documentation.')
+    throw new Error("'consumerQueue' not specified.  See documentation.");
   }
   if (!options.handler) {
-    throw new Error('\'handler\' not specified.  See documentation.')
+    throw new Error("'handler' not specified.  See documentation.");
   }
 
   // set defaults
   if (!options.failureQueue) {
-    options.failureQueue = options.consumerQueue + '.failure'
+    options.failureQueue = options.consumerQueue + '.failure';
   }
 
   // initializing the objects
-  const initializer = new Initializer(options.channel, options.consumerQueue, options.failureQueue)
-  const consumer = new ReadyQueueConsumer(options.channel)
-  const wrapper = amqpHandlerWrapper(options.channel, options.consumerQueue, options.failureQueue, options.handler, options.delay, options.retryCount, initializer)
+  const initializer = new Initializer(options.channel, options.consumerQueue, options.failureQueue);
+  const consumer = new ReadyQueueConsumer(options.channel);
+  const wrapper = amqpHandlerWrapper(
+    options.channel,
+    options.consumerQueue,
+    options.failureQueue,
+    options.handler,
+    options.delay,
+    options.retryCount,
+    initializer
+  );
 
   // initializing the queues, exchange and binding. Then starting the consumer
-  initializer
-    .initialize()
-    .then(() => consumer.start())
+  initializer.initialize(options.retryCount).then(() => consumer.start());
 
   // returning wrapper for given amqp handler function.
-  return wrapper
-}
+  return wrapper;
+};
