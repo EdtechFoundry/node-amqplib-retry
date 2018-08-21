@@ -15,16 +15,13 @@ class Initializer {
     const delayQueuePromises = [];
     for (let i = 1; i <= this.retryCount; i++) {
       delayQueuePromises.push(
-        this.channel.assertQueue(
-          getDelayQueueName(config.delayQueueName, this.retryCount, this.delayFn),
-          {
-            durable: true,
-            arguments: {
-              'x-dead-letter-exchange': config.exchangeName,
-              'x-dead-letter-routing-key': config.readyRouteKey,
-            },
-          }
-        )
+        this.channel.assertQueue(getDelayQueueName(config.delayQueueName, i, this.delayFn), {
+          durable: true,
+          arguments: {
+            'x-dead-letter-exchange': config.exchangeName,
+            'x-dead-letter-routing-key': config.readyRouteKey,
+          },
+        })
       );
     }
     return Promise.all(assertQueuePromiseMap);
