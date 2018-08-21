@@ -3,16 +3,6 @@ const Promise = require('bluebird');
 const config = require('./config');
 const getDelayQueueName = require('./get_delay_queue_name');
 
-// attempts must be a number in milliseconds
-const getDefaultDelay = attempts => {
-  const delay = Math.pow(2, attempts);
-  if (delay > 60 * 60 * 24) {
-    // the delay for the message is longer than 24 hours.  Fail the message and never retry again.
-    return -1;
-  }
-  return delay * 1000;
-};
-
 module.exports = function(
   channel,
   clientQueueName,
@@ -37,7 +27,7 @@ module.exports = function(
     }
 
     msg.properties.headers._retryCount += 1;
-    const expiration = (delayFunction || getDefaultDelay)(msg.properties.headers._retryCount);
+    const expiration = delayFunction(msg.properties.headers._retryCount);
 
     if (expiration < 1) {
       return channel.sendToQueue(failureQueueName, new Buffer(msg.content), msg.properties);
@@ -57,11 +47,7 @@ module.exports = function(
 
     return channel.publish(
       '',
-      getDelayQueueName(
-        config.delayQueueName,
-        msg.properties.headers._retryCount,
-        delayFunction || getDefaultDelay
-      ),
+      getDelayQueueName(config.delayQueueName, msg.properties.headers._retryCount, delayFunction),
       new Buffer(msg.content),
       properties
     );

@@ -1,31 +1,37 @@
 var config = require('./config');
 var Promise = require('bluebird');
+const getDelayQueueName = require('./get_delay_queue_name');
 
 class Initializer {
-  constructor(channel, clientQueueName, failureQueueName) {
+  constructor(channel, clientQueueName, failureQueueName, retryCount, delayFn) {
     this.channel = channel;
     this.clientQueueName = clientQueueName;
     this.failureQueueName = failureQueueName;
+    this.retryCount = retryCount;
+    this.delayFn = delayFn;
   }
 
-  assertDelayQueues(retryCount) {
-    const assertQueuePromiseMap = new Array(retryCount).map(c =>
-      this.channel.assertQueue(`${config.delayQueueName}-${c}`, {
-        durable: true,
-        arguments: {
-          'x-dead-letter-exchange': config.exchangeName,
-          'x-dead-letter-routing-key': config.readyRouteKey,
-        },
-      })
+  assertDelayQueues() {
+    const assertQueuePromiseMap = new Array(this.retryCount).map(c =>
+      this.channel.assertQueue(
+        getDelayQueueName(config.delayQueueName, this.retryCount, this.delayFn),
+        {
+          durable: true,
+          arguments: {
+            'x-dead-letter-exchange': config.exchangeName,
+            'x-dead-letter-routing-key': config.readyRouteKey,
+          },
+        }
+      )
     );
     return Promise.all(assertQueuePromiseMap);
   }
 
-  initialize(retryCount) {
+  initialize() {
     const self = this;
     return Promise.try(() => {
       return Promise.all([
-        self.assertDelayQueues(retryCount),
+        self.assertDelayQueues(),
         self.channel.assertQueue(config.readyQueueName, { durable: true }),
         self.channel.checkQueue(self.clientQueueName),
         self.channel.checkQueue(self.failureQueueName),
