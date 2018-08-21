@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const Promise = require('bluebird');
 const config = require('./config');
+const getDelayQueueName = require('./get_delay_queue_name');
 
 // attempts must be a number in milliseconds
 const getDefaultDelay = attempts => {
@@ -56,7 +57,11 @@ module.exports = function(
 
     return channel.publish(
       '',
-      `${config.delayQueueName}-${msg.properties.headers._retryCount}`,
+      getDelayQueueName(
+        config.delayQueueName,
+        msg.properties.headers._retryCount,
+        delayFunction || getDefaultDelay
+      ),
       new Buffer(msg.content),
       properties
     );
