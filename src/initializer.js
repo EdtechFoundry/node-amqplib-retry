@@ -9,7 +9,7 @@ class Initializer {
   }
 
   assertDelayQueues(retryCount) {
-    const assertDelayQueuesPromiseMap = new Array(retryCount).map(c =>
+    const assertQueuePromiseMap = new Array(retryCount).map(c =>
       this.channel.assertQueue(`${config.delayQueueName}-${c}`, {
         durable: true,
         arguments: {
@@ -18,7 +18,7 @@ class Initializer {
         },
       })
     );
-    return Promise.all(assertDelayQueuesPromiseMap);
+    return Promise.all(assertQueuePromiseMap);
   }
 
   initialize(retryCount) {
