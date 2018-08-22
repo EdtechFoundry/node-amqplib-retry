@@ -13,7 +13,9 @@ class Initializer {
 
   assertDelayQueues() {
     const delayQueuePromises = [];
+    console.log('why no assert', this.retryCount);
     for (let i = 1; i <= this.retryCount; i++) {
+      console.log('asserting queue: ', getDelayQueueName(config.delayQueueName, i, this.delayFn));
       delayQueuePromises.push(
         this.channel.assertQueue(getDelayQueueName(config.delayQueueName, i, this.delayFn), {
           durable: true,
@@ -24,7 +26,7 @@ class Initializer {
         })
       );
     }
-    return Promise.all(assertQueuePromiseMap);
+    return Promise.all(delayQueuePromises);
   }
 
   initialize() {

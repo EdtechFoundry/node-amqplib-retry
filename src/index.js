@@ -1,16 +1,8 @@
 const Initializer = require('./initializer');
 const ReadyQueueConsumer = require('./ready_queue_consumer');
 const amqpHandlerWrapper = require('./amqp_handler_wrapper');
-
-// attempts must be a number in milliseconds
-const getDefaultDelay = attempts => {
-  const delay = Math.pow(2, attempts);
-  if (delay > 60 * 60 * 24) {
-    // the delay for the message is longer than 24 hours.  Fail the message and never retry again.
-    return -1;
-  }
-  return delay * 1000;
-};
+const _ = require('underscore');
+const getDefaultDelay = require('./get_default_delay');
 
 module.exports = options => {
   // validate options
@@ -29,15 +21,15 @@ module.exports = options => {
     options.failureQueue = options.consumerQueue + '.failure';
   }
 
-  const delayFn = options.delay || getDefaultDelay;
+  const retryCount = _.isNaN(options.retryCount) ? options.retryCount : 1;
 
   // initializing the objects
   const initializer = new Initializer(
     options.channel,
     options.consumerQueue,
     options.failureQueue,
-    options.retryCount,
-    delayFn
+    retryCount,
+    options.delay
   );
   const consumer = new ReadyQueueConsumer(options.channel);
   const wrapper = amqpHandlerWrapper(
@@ -45,8 +37,8 @@ module.exports = options => {
     options.consumerQueue,
     options.failureQueue,
     options.handler,
-    delayFn,
-    options.retryCount,
+    options.delay || getDefaultDelay,
+    retryCount,
     initializer
   );
 

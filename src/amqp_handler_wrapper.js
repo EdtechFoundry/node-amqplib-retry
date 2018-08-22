@@ -27,6 +27,7 @@ module.exports = function(
     }
 
     msg.properties.headers._retryCount += 1;
+    console.log('error-handler, retrycount:', msg.properties.headers._retryCount);
     const expiration = delayFunction(msg.properties.headers._retryCount);
 
     if (expiration < 1) {
@@ -44,7 +45,10 @@ module.exports = function(
     _.extend(properties, {
       expiration: expiration.toString(),
     });
-
+    console.log(
+      'publishing to:',
+      getDelayQueueName(config.delayQueueName, msg.properties.headers._retryCount, delayFunction)
+    );
     return channel.publish(
       '',
       getDelayQueueName(config.delayQueueName, msg.properties.headers._retryCount, delayFunction),
