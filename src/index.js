@@ -22,6 +22,7 @@ module.exports = options => {
   }
 
   const retryCount = _.isNaN(options.retryCount) ? 1 : options.retryCount;
+  const retryFn = options.delay || getDefaultDelay;
 
   // initializing the objects
   const initializer = new Initializer(
@@ -29,7 +30,7 @@ module.exports = options => {
     options.consumerQueue,
     options.failureQueue,
     retryCount,
-    options.delay
+    retryFn
   );
   const consumer = new ReadyQueueConsumer(options.channel);
   const wrapper = amqpHandlerWrapper(
@@ -37,7 +38,7 @@ module.exports = options => {
     options.consumerQueue,
     options.failureQueue,
     options.handler,
-    options.delay || getDefaultDelay,
+    retryFn,
     retryCount,
     initializer
   );
