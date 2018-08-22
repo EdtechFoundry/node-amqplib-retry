@@ -21,7 +21,7 @@ module.exports = options => {
     options.failureQueue = options.consumerQueue + '.failure';
   }
 
-  const retryCount = _.isNaN(options.retryCount) ? options.retryCount : 1;
+  const retryCount = _.isNaN(options.retryCount) ? 1 : options.retryCount;
 
   // initializing the objects
   const initializer = new Initializer(
