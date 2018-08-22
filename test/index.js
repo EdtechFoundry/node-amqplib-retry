@@ -162,7 +162,6 @@ describe('amqplib-retry', () => {
     return startListenerAndPushMessage(spy, hardcodedDelay(200))
       .delay(1000) // enough time for at least four iterations
       .then(() => {
-        console.log('callcount: ', spy.callCount);
         spy.calledThrice.should.be.eql(true);
         msg.content.toString().should.be.eql('abc');
       });
