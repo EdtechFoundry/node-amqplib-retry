@@ -12,6 +12,8 @@ const READY_QUEUE_NAME = config.readyQueueName;
 const FAILURE_QUEUE_NAME = 'amqplib-retry.tests.failure';
 const CONSUMER_TAG = 'amqplib-retry.tests';
 
+const DELAY_QUEUE_WITH_ONE_RETRY_NAME = `${DELAY_QUEUE_NAME}-2000`;
+
 describe('amqplib-retry', () => {
   let channel;
 
@@ -20,10 +22,10 @@ describe('amqplib-retry', () => {
   const purgeDelayQueue = retryAttempt =>
     channel.purgeQueue(getDelayQueueName(DELAY_QUEUE_NAME, retryAttempt));
 
-  const checkQueues = (retryAttempt, delayFn) => () => {
+  const checkQueues = delayQueueName => () => {
     return Promise.all([
       channel.checkQueue(ENTRY_QUEUE_NAME),
-      channel.checkQueue(getDelayQueueName(DELAY_QUEUE_NAME, retryAttempt, delayFn)),
+      channel.checkQueue(delayQueueName),
       channel.checkQueue(READY_QUEUE_NAME),
       channel.checkQueue(FAILURE_QUEUE_NAME),
     ]);
@@ -73,7 +75,7 @@ describe('amqplib-retry', () => {
   it('acks a successfully handled message', () =>
     startListenerAndPushMessage(() => {}, hardcodedDelay(-1))
       .delay(200)
-      .then(checkQueues(-1, hardcodedDelay(-1)))
+      .then(checkQueues(DELAY_QUEUE_NAME))
       .spread((entry, delay, ready, failed) => {
         entry.messageCount.should.be.eql(0);
         delay.messageCount.should.be.eql(0);
@@ -89,7 +91,7 @@ describe('amqplib-retry', () => {
 
     return startListenerAndPushMessage(delayedSuccess, hardcodedDelay(-1))
       .delay(400)
-      .then(checkQueues(1, hardcodedDelay(-1)))
+      .then(checkQueues(DELAY_QUEUE_NAME))
       .spread((entry, delay, ready, failed) => {
         entry.messageCount.should.be.eql(0);
         delay.messageCount.should.be.eql(0);
@@ -105,7 +107,7 @@ describe('amqplib-retry', () => {
 
     return startListenerAndPushMessage(fail, hardcodedDelay(-1))
       .delay(200)
-      .then(checkQueues(1, hardcodedDelay(-1)))
+      .then(checkQueues(DELAY_QUEUE_NAME))
       .spread((entry, delay, ready, failed) => {
         entry.messageCount.should.be.eql(0);
         delay.messageCount.should.be.eql(0);
@@ -122,7 +124,7 @@ describe('amqplib-retry', () => {
     return startListenerAndPushMessage(fail)
       .delay(500)
       .then(() => console.log(123))
-      .then(checkQueues(1))
+      .then(checkQueues(DELAY_QUEUE_WITH_ONE_RETRY_NAME))
       .spread((entry, delay, ready, failed) => {
         entry.messageCount.should.be.eql(0);
         delay.messageCount.should.be.eql(1);
@@ -140,7 +142,7 @@ describe('amqplib-retry', () => {
 
     return startListenerAndPushMessage(delayedFail, hardcodedDelay(-1))
       .delay(1500)
-      .then(checkQueues(1, hardcodedDelay(-1)))
+      .then(checkQueues(DELAY_QUEUE_NAME))
       .spread((entry, delay, ready, failed) => {
         entry.messageCount.should.be.eql(0);
         delay.messageCount.should.be.eql(0);
