@@ -21,7 +21,6 @@ describe('amqplib-retry', () => {
     channel.purgeQueue(getDelayQueueName(DELAY_QUEUE_NAME, retryAttempt));
 
   const checkQueues = (retryAttempt, delayFn) => () => {
-    console.log('checking queues', getDelayQueueName(DELAY_QUEUE_NAME, retryAttempt, delayFn));
     return Promise.all([
       channel.checkQueue(ENTRY_QUEUE_NAME),
       channel.checkQueue(getDelayQueueName(DELAY_QUEUE_NAME, retryAttempt, delayFn)),
