@@ -1,6 +1,6 @@
 {
   "name": "@edtechfoundry/amqplib-retry",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "description": "Retry failed attempts to consume a message, with increasing delays between each attempt.",
   "author": "Lanetix <engineering@lanetix.com> (https://github.com/lanetix/)",
   "keywords": [
@@ -29,6 +29,7 @@
     "test": "mocha -t 10000 && npm run lint"
   },
   "dependencies": {
+    "@edtechfoundry/node-logger": "^2.1.2",
     "amqplib": "^0.4",
     "bluebird": "^3",
     "underscore": "^1"

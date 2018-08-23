@@ -2,6 +2,7 @@ const _ = require('underscore');
 const Promise = require('bluebird');
 const config = require('./config');
 const getDelayQueueName = require('./get_delay_queue_name');
+const { Log } = require('@edtechfoundry/node-logger');
 
 module.exports = function(
   channel,
@@ -57,7 +58,7 @@ module.exports = function(
       .catch(err => {
         // Something went wrong. Let's handle this message.
         // Adding the string 'error' to support papertrail error filters.
-        console.error('Error: AMQP retry handler caught the following error: ', err);
+        Log.error('Error: AMQP retry handler caught the following error: ', err);
         return Promise.try(() => errorHandler(msg)).catch(err => {
           // Something went wrong while trying to process the erroneous message.
           // Sending nack so the client can try to process it again.
