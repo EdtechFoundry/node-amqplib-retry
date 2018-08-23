@@ -1,6 +1,6 @@
 {
   "name": "@edtechfoundry/amqplib-retry",
-  "version": "1.1.8",
+  "version": "1.2.0",
   "description": "Retry failed attempts to consume a message, with increasing delays between each attempt.",
   "author": "Lanetix <engineering@lanetix.com> (https://github.com/lanetix/)",
   "keywords": [
@@ -33,7 +33,11 @@
     "bluebird": "^3",
     "underscore": "^1"
   },
+  "peerDependencies": {
+    "@edtechfoundry/node-logger": "*"
+  },
   "devDependencies": {
+    "@edtechfoundry/node-logger": "*",
     "babel-cli": "^6",
     "babel-preset-es2015": "^6",
     "coveralls": "^2",
