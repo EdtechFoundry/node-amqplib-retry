@@ -56,10 +56,18 @@ module.exports = function(
   const handlerWrapper = msg =>
     Promise.try(() => clientHandler(msg))
       .catch(err => {
-        Log.info('AMQP retry handler caught the following error: ', err);
+        Log.info(
+          `AMQP retry handler caught the following error after ${
+            msg.properties.headers._retryCount
+          } attempts and will retry the message again in ${expiration} ms`,
+          err,
+        );
 
         return Promise.try(() => errorHandler(msg)).catch(err => {
-          Log.error('AMQP retry handler failed to requeue a message. Properties:', msg.properties);
+          Log.error(
+            'AMQP retry handler failed to send the message to the failed queue. Properties:',
+            msg.properties,
+          );
           channel.nack(msg);
           throw err;
         });
