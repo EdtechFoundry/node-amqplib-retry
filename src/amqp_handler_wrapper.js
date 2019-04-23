@@ -11,7 +11,7 @@ module.exports = function(
   clientHandler,
   delayFunction,
   retryCount,
-  initializer
+  initializer,
 ) {
   const errorHandler = msg => {
     if (!initializer.isInitialized) {
@@ -49,19 +49,25 @@ module.exports = function(
       '',
       getDelayQueueName(config.delayQueueName, msg.properties.headers._retryCount, delayFunction),
       new Buffer(msg.content),
-      properties
+      properties,
     );
   };
 
   const handlerWrapper = msg =>
     Promise.try(() => clientHandler(msg))
       .catch(err => {
-        // Something went wrong. Let's handle this message.
-        // Adding the string 'error' to support papertrail error filters.
-        Log.error('Error: AMQP retry handler caught the following error: ', err);
+        Log.info(
+          `AMQP retry handler caught the following error after ${
+            msg.properties.headers._retryCount
+          } attempts and will retry the message again in ${expiration} ms`,
+          err,
+        );
+
         return Promise.try(() => errorHandler(msg)).catch(err => {
-          // Something went wrong while trying to process the erroneous message.
-          // Sending nack so the client can try to process it again.
+          Log.error(
+            'AMQP retry handler failed to send the message to the failed queue. Properties:',
+            msg.properties,
+          );
           channel.nack(msg);
           throw err;
         });
@@ -69,7 +75,7 @@ module.exports = function(
       .then(() =>
         // We ack it for the user. Either way if the message has been processed successfully or
         // not, the message should be out of the original queue, therefore - acked.
-        channel.ack(msg)
+        channel.ack(msg),
       );
 
   return handlerWrapper;
