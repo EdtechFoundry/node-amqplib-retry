@@ -59,7 +59,7 @@ module.exports = function(
         Log.info('AMQP retry handler caught the following error: ', err);
 
         return Promise.try(() => errorHandler(msg)).catch(err => {
-          Log.error(`AMQP retry handler failed to requeue a message. Properties:`, msg.properties);
+          Log.error('AMQP retry handler failed to requeue a message. Properties:', msg.properties);
           channel.nack(msg);
           throw err;
         });
