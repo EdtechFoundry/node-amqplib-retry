@@ -56,7 +56,7 @@ module.exports = function(
   const handlerWrapper = msg =>
     Promise.try(() => clientHandler(msg))
       .catch(err => {
-        Log.info(
+        Log.debug(
           `AMQP retry handler caught the following error after ${
             msg.properties.headers._retryCount
           } attempts and will retry the message again in ${expiration} ms`,
