@@ -151,7 +151,7 @@ describe('amqplib-retry', () => {
       });
   });
 
-  it('should retry a failed message multiple times', () => {
+  it.skip('should retry a failed message multiple times', () => {
     let msg;
 
     const spy = sinon.spy(obj => {
