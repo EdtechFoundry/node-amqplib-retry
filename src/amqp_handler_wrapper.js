@@ -56,6 +56,7 @@ module.exports = function(
   const handlerWrapper = msg =>
     Promise.try(() => clientHandler(msg))
       .catch(err => {
+        const expiration = delayFunction(msg.properties.headers._retryCount);
         Log.debug(
           `AMQP retry handler caught the following error after ${
             msg.properties.headers._retryCount
