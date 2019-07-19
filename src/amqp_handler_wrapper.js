@@ -19,10 +19,6 @@ module.exports = function(
       return Promise.delay(1).then(() => errorHandler(msg));
     }
 
-    _.defaults(msg, { properties: {} });
-    _.defaults(msg.properties, { headers: {} });
-    _.defaults(msg.properties.headers, { _retryCount: 0 }); // _retryCount: 0 means this message has never been retried before.
-
     if (!isNaN(retryCount) && retryCount === msg.properties.headers._retryCount) {
       return channel.sendToQueue(failureQueueName, new Buffer(msg.content), msg.properties);
     }
@@ -56,6 +52,11 @@ module.exports = function(
   const handlerWrapper = msg =>
     Promise.try(() => clientHandler(msg))
       .catch(err => {
+
+        _.defaults(msg, { properties: {} });
+        _.defaults(msg.properties, { headers: {} });
+        _.defaults(msg.properties.headers, { _retryCount: 0 }); // _retryCount: 0 means this message has never been retried before.
+
         const expiration = delayFunction(msg.properties.headers._retryCount);
         Log.debug(
           `AMQP retry handler caught the following error after ${
